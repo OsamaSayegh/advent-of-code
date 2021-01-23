@@ -1,0 +1,77 @@
+#!/usr/bin/env ruby
+
+require 'net/http'
+require 'fileutils'
+
+now = Time.now.utc
+YEAR = ARGV[0] ? Integer(ARGV[0]) : now.year
+if ARGV.size == 1
+  STDERR.puts "please specifiy day like so: ./play #{YEAR} <day>"
+  exit(1)
+end
+DAY = ARGV[1] ? Integer(ARGV[1]) : now.day
+
+if YEAR > now.year
+  STDERR.puts "we are not in #{YEAR} yet. Time now: #{now}"
+  exit(1)
+end
+
+if !(1..25).include?(DAY)
+  STDERR.puts "Day must be between 1 and 25 inclusive."
+  exit(1)
+end
+
+if YEAR == now.year
+  if now.month != 12
+    STDERR.puts "we are not in December #{YEAR} yet. Time now: #{now}"
+    exit(1)
+  end
+  if DAY > now.day
+    STDERR.puts "December #{DAY} #{YEAR} has not come yet. Time now: #{now}"
+    exit(1)
+  end
+  if DAY == now.day && now.hour < 5
+    STDERR.puts "Puzzle of December #{DAY} #{YEAR} has not unlocked yet. It unlocks at 5 AM UTC. Time now: #{now}"
+    exit(1)
+  end
+end
+cookie = ENV.fetch('AOC_COOKIE')
+if cookie.size != 96
+  STDERR.puts "Cookie length must be 96"
+  exit(1)
+end
+
+year_dir = File.expand_path(YEAR.to_s, __dir__)
+if !File.exists?(year_dir)
+  FileUtils.mkdir(year_dir) 
+  puts "Created #{year_dir}"
+end
+
+day_dir = File.join(year_dir, "day-#{DAY.to_s.rjust(2, '0')}")
+if !File.exists?(day_dir)
+  FileUtils.mkdir(day_dir) 
+  puts "Created #{day_dir}"
+end
+
+input_path = File.join(day_dir, 'input.txt')
+if !File.exists?(input_path)
+  puts "Downloading input for year #{YEAR} day #{DAY}..."
+  uri = URI("https://adventofcode.com/#{YEAR}/day/#{DAY}/input")
+  request = Net::HTTP::Get.new(uri, { 'cookie' => "session=#{cookie}" })
+  http = Net::HTTP.new(uri.hostname, uri.port)
+  http.use_ssl = true
+  response = http.request(request)
+  if response.code.to_i != 200
+    STDERR.puts "Failed to fetch input; received status code: #{response.code.inspect}."
+    exit(1)
+  end
+  File.write(input_path, response.body)
+  puts "Created #{input_path}"
+else
+  puts "File input exists"
+end
+
+script_file = Dir.foreach(day_dir).find { |name| name =~ /answer-script/ }
+puts "Opening vim..."
+sleep 0.3
+system("cd #{day_dir} && vim#{script_file ? " #{script_file}" : ""}")
