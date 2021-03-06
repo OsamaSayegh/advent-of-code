@@ -49,10 +49,11 @@ struct intcode_computer {
   long unsigned int inst_pointer = 0;
   long relative_base = 0;
   bool dynamic_mem = false;
+  bool halted = false;
 
   void write(long position, long value) {
     if (position < 0 || ((size_t) position >= instructions.size() && !dynamic_mem)) {
-      printf("read error position: %ld\n", position);
+      printf("write error position: %ld, size: %ld\n", position, instructions.size());
       exit(1);
     }
     if ((size_t) position >= instructions.size()) {
@@ -63,7 +64,7 @@ struct intcode_computer {
 
   long read(long position) {
     if (position < 0 || ((size_t) position >= instructions.size() && !dynamic_mem)) {
-      printf("read error position: %ld\n", position);
+      printf("read error position: %ld, size: %ld\n", position, instructions.size());
       exit(1);
     }
     if ((size_t) position >= instructions.size()) {
@@ -73,9 +74,9 @@ struct intcode_computer {
   }
 
   void set_operand(long *operand, int p_mode, int offset) {
-    *operand = instructions[inst_pointer + offset];
-    if (p_mode == 0) *operand = instructions[*operand];
-    if (p_mode == 2) *operand = instructions[relative_base + *operand];
+    *operand = read(inst_pointer + offset);
+    if (p_mode == 0) *operand = read(*operand);
+    if (p_mode == 2) *operand = read(relative_base + *operand);
   }
 
   void run(bool suspend_on_output) {
@@ -182,6 +183,7 @@ struct intcode_computer {
           inst_pointer += 2;
           break;
         case 99:
+          halted = true;
           goto end_prog;
       }
     }
