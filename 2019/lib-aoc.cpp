@@ -34,6 +34,17 @@ std::vector<std::string> split(const char* input, char del) {
   return res;
 }
 
+std::vector<long> intcode_instructions(int argc, char **argv) {
+  char *content = puzzle_input(argc, argv);
+  std::vector<std::string> str_instructions = split(content, ',');
+  free(content);
+  std::vector<long> inst;
+  for (size_t i = 0; i < str_instructions.size(); i++) {
+    inst.push_back(stol(str_instructions[i]));
+  }
+  return inst;
+}
+
 int extract_digit(long a, int n) {
   int nth_power = 1;
   for (int i = 1; i <= n; i++) {
@@ -71,6 +82,14 @@ struct intcode_computer {
       instructions.resize(position + 1);
     }
     return instructions[position];
+  }
+
+  long read_output(size_t index) {
+    if (index >= outputs.size()) {
+      printf("Invalid output reads at index %ld, size: %ld\n", index, outputs.size());
+      exit(1);
+    }
+    return outputs[index];
   }
 
   void set_operand(long *operand, int p_mode, int offset) {
