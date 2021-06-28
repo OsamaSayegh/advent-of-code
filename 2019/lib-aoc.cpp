@@ -98,6 +98,14 @@ struct intcode_computer {
     if (p_mode == 2) *operand = read(relative_base + *operand);
   }
 
+  void reset(std::vector<long> new_instructions) {
+    instructions = new_instructions;
+    outputs.clear();
+    inst_pointer = 0;
+    halted = false;
+    relative_base = 0;
+  }
+
   void run(bool suspend_on_output) {
     std::vector<long> *inputs = &prev->outputs;
     long output = 0;
