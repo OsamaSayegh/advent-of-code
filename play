@@ -69,7 +69,7 @@ if !File.exists?(input_path)
   puts "Created #{input_path}"
 else
   puts "File input exists"
-end
+
 
 script_file = Dir.foreach(day_dir).find { |name| name =~ /answer-script/ }
 puts "Opening vim..."
