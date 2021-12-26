@@ -37,7 +37,7 @@ func areNeighbors(s1, s2 *Scanner) bool {
           }
         }
       }
-      if count >= 11 {
+      if count >= 12 {
         return true
       }
     }
@@ -89,23 +89,50 @@ func findNext(index int, matches map[int]int, done []int, scanners []*Scanner) b
   fmt.Println(index, potentials, done)
   if len(potentials) == 1 {
     done = append(done, index)
-    if findNext(potentials[0], matches, done, scanners) {
-      matches[index] = potentials[0]
-      return true
-    } else {
-      return false
-    }
+    matches[index] = potentials[0]
+    return findNext(potentials[0], matches,done, scanners)
   } else if len(potentials) > 1 {
-    done = append(done, index)
     for _, p := range potentials {
-      if findNext(p, matches, done, scanners) {
+      newMatches := make(map[int]int)
+      for k, v := range matches {
+        newMatches[k] = v
+      }
+      newDone := make([]int, len(done))
+      copy(newDone, done)
+      newDone = append(newDone, index)
+      if findNext(p, newMatches, newDone, scanners) {
+        for k, v := range newMatches {
+          matches[k] = v
+        }
         matches[index] = p
         return true
       }
     }
-    panic("wtf")
+    return false
   } else {
-    return len(matches) == len(scanners)
+    if len(done) + 1 == len(scanners) - 1 {
+      last := -1
+      for i, _ := range scanners {
+        skip := false
+        if i == index { continue }
+        for _, n := range done {
+          if n == i {
+            skip = true
+            break
+          }
+        }
+        if skip { continue }
+        last = i
+        break
+      }
+      if last == -1 {
+        panic("couldn't find last scanner!")
+      }
+      matches[index] = last
+      return true
+    } else {
+      return false
+    }
   }
 }
 
@@ -145,6 +172,20 @@ func run() int {
     // done := []int{}
     // findNext(0, matches, done, scanners)
     // fmt.Println(matches)
+    pos := make([][]int, 0, len(scanners))
+    for i, s1 := range scanners {
+      gg := []int{}
+      for j, s2 := range scanners {
+        if j == i { continue }
+        if areNeighbors(s1, s2) {
+          gg = append(gg, j)
+        }
+      }
+      pos = append(pos, gg)
+    }
+    for k, v := range pos {
+      fmt.Printf("%02d: %v\n", k, v)
+    }
     // 0 -> 1 -> 4 -> 2 -> 3
     // sequence := []int{}
     // matchesMap := make(map[int]int)
@@ -219,21 +260,26 @@ func run() int {
     // for i, scanner := range scanners {
       // if i == 0 { continue }
       // matches := make(map[[3]int][3]int)
-      for i, b1 := range scanners[2].beacons {
-        for j, b2 := range scanners[3].beacons {
-          inters := 0
-          for _, d1 := range b1.distances {
-            for _, d2 := range b2.distances {
-              if d1 == d2 {
-                inters++
-              }
-            }
-          }
-          fmt.Println(inters, i, j)
-        }
-      }
-      fmt.Println(scanners[2].beacons[0].distances)
-      fmt.Println(scanners[3].beacons[0].distances)
+      // max := -1
+      // for i, b1 := range scanners[2].beacons {
+      //   for j, b2 := range scanners[4].beacons {
+      //     inters := 0
+      //     for _, d1 := range b1.distances {
+      //       for _, d2 := range b2.distances {
+      //         if d1 == d2 {
+      //           inters++
+      //         }
+      //       }
+      //     }
+      //     if inters > max {
+      //       max = inters
+      //     }
+      //     fmt.Println(inters, i, j)
+      //   }
+      // }
+      // fmt.Println(max)
+      // fmt.Println(scanners[2].beacons[0].distances)
+      // fmt.Println(scanners[3].beacons[0].distances)
     // }
 	return 0
 }
