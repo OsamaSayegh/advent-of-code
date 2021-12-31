@@ -37,7 +37,7 @@ func areNeighbors(s1, s2 *Scanner) bool {
           }
         }
       }
-      if count >= 12 {
+      if count >= 11 {
         return true
       }
     }
@@ -86,11 +86,17 @@ func findNext(index int, matches map[int]int, done []int, scanners []*Scanner) b
       potentials = append(potentials, i)
     }
   }
-  fmt.Println(index, potentials, done)
+  // fmt.Println(index, potentials, done)
   if len(potentials) == 1 {
     done = append(done, index)
-    matches[index] = potentials[0]
-    return findNext(potentials[0], matches,done, scanners)
+    if findNext(potentials[0], matches,done, scanners) {
+      matches[index] = potentials[0]
+      return true
+    } else {
+      return false
+    }
+    // matches[index] = potentials[0]
+    // return findNext(potentials[0], matches,done, scanners)
   } else if len(potentials) > 1 {
     for _, p := range potentials {
       newMatches := make(map[int]int)
@@ -137,7 +143,7 @@ func findNext(index int, matches map[int]int, done []int, scanners []*Scanner) b
 }
 
 func run() int {
-	data, err := os.ReadFile("input2.txt")
+	data, err := os.ReadFile("input.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -168,10 +174,13 @@ func run() int {
     for i,_ := range scanners {
       left = append(left, i)
     }
-    // matches := make(map[int]int)
-    // done := []int{}
-    // findNext(0, matches, done, scanners)
-    // fmt.Println(matches)
+    for i, _ := range scanners {
+      matches := make(map[int]int)
+      done := []int{}
+      findNext(i, matches, done, scanners)
+      fmt.Println(matches)
+    }
+    return 0
     pos := make([][]int, 0, len(scanners))
     for i, s1 := range scanners {
       gg := []int{}
