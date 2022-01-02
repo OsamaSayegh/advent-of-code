@@ -45,6 +45,20 @@ func subtract(a, b Cuboid) []Cuboid {
     }
     res = append(res, top)
   }
+
+  bottomY := b.y + b.h
+  bottomHeight := a.h - (bottomY - a.y)
+  if bottomHeight > 0 && bottomY < a.y + a.h {
+    bottom := Cuboid{
+      x: a.x,
+      y: bottomY,
+      z: a.z,
+      w: a.w,
+      h: bottomHeight,
+      d: a.d,
+    }
+    res = append(res, bottom)
+  }
 }
 
 func run() int {
