@@ -205,6 +205,16 @@ func subtract(a, b *Cuboid) []*Cuboid {
   return res
 }
 
+func subtractMulti(a *Cuboid, list []*Cuboid) {
+  remaining := []*Cuboid{a}
+  for _, b := range list {
+    if intersection(a, b) == nil {
+      continue
+    }
+    remaining = subtract(a, b)
+  }
+}
+
 func add(a, b *Cuboid) []*Cuboid {
   intersect := intersection(a, b)
   if intersect == nil {
@@ -219,7 +229,7 @@ func add(a, b *Cuboid) []*Cuboid {
 }
 
 func run() int {
-	data, err := os.ReadFile("input2.txt")
+	data, err := os.ReadFile("input4.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -253,7 +263,8 @@ func run() int {
 	}
 
     ranges := []*Cuboid{}
-    for _, step := range steps {
+    for ss, step := range steps {
+      fmt.Println(ss)
       if step.on {
         additionalRanges := []*Cuboid{step.Cuboid}
         for _, r := range ranges {
@@ -265,49 +276,32 @@ func run() int {
         }
         ranges = append(ranges, additionalRanges...)
       } else {
-        turnedOff := []*Cuboid{step.Cuboid}
-        updatedRanges := []*Cuboid{}
-        stopAt := len(ranges)
-        i := 0
-        for i < stopAt {
-          current := ranges[i]
-        }
-        for i, r := range ranges {
-          updatedTurnedOff := []*Cuboid{}
-          for _, t := range turnedOff {
-            // fmt.Println(i, t, r)
-            // for _, fdx := range subtract(t, r) {
-            //   fmt.Println(fdx)
-            // }
-            // fmt.Println("------------------------------------")
-            updatedTurnedOff = append(updatedTurnedOff, subtract(t, r)...)
-            updatedRanges = append(updatedRanges, subtract(r, t)...)
-          }
-          if false && i == 0 {
-            fmt.Println("updatedRanges start")
-            for _, uu := range updatedRanges {
-              fmt.Println(uu)
-            }
-            fmt.Println("updatedRanges end\n")
-            fmt.Println("updatedTurnedOff start")
-            for _, uu := range updatedTurnedOff {
-              fmt.Println(uu)
-            }
-            fmt.Println("updatedTurnedOff end\n")
-          }
-          turnedOff = updatedTurnedOff
-        }
-        ranges = updatedRanges
+        // offList := []*Cuboid{step.Cuboid}
+        // newRanges := []*Cuboid{}
+        // for len(offList) > 0 {
+        //   off := offList[0]
+        //   offList = offList[1:]
+        //   for i, on := range ranges {
+        //     if intersection(on, off) == nil {
+        //       // newRanges = append(newRanges, on)
+        //       continue
+        //     }
+        //     offList = append(offList, subtract(off, on)...)
+        //     newRanges = append(newRanges, subtract(on, off)...)
+        //     newRanges = append(newRanges, ranges[i+1:]...)
+        //     break
+        //   }
+        // }
+        // ranges = newRanges
       }
     }
-      // fmt.Println(len(ranges))
-      // sum := 0
+      sum := 0
       for _, a := range ranges {
-        fmt.Println(a)
-      //   // sum += a.w * a.h * a.d
+        // fmt.Println(a)
+        sum += a.w * a.h * a.d
       }
-      fmt.Println("---------------------------------------")
-      // fmt.Println("sum", sum)
+      fmt.Println("sum", sum)
+      // fmt.Println(len(ranges))
     // cuboids := []Cuboid{}
 	return 0
 }
