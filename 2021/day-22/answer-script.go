@@ -7,18 +7,18 @@ import (
 	"strings"
 )
 
-type Step struct {
-    *Cuboid
-	on bool
+type Cuboid struct {
+	x int
+	y int
+	z int
+	w int
+	h int
+	d int
 }
 
-type Cuboid struct {
-  x int
-  y int
-  z int
-  w int
-  h int
-  d int
+type Step struct {
+	*Cuboid
+	on bool
 }
 
 func parseRange(coords string) (int, int) {
@@ -32,204 +32,139 @@ func parseRange(coords string) (int, int) {
 }
 
 func min(a, b int) int {
-  if a < b {
-    return a
-  }
-  return b
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func max(a, b int) int {
-  if a > b {
-    return a
-  }
-  return b
+	if a > b {
+		return a
+	}
+	return b
 }
-
-func subtract2(a, b Cuboid) {
-  xChunks := [3]int{0, 0, 0}
-  yChunks := [3]int{0, 0, 0}
-  zChunks := [3]int{0, 0, 0}
-  xChunks[0] = b.x - a.x
-  xChunks[1] = max(a.x, b.x)
-  xChunks[1] = min((a.x + a.w) - xChunks[1], (b.x + b.w) - xChunks[1])
-  xChunks[2] = (a.x + a.w) - (b.x + b.w)
-
-  yChunks[0] = b.y - a.y
-  yChunks[1] = max(a.y, b.y)
-  yChunks[1] = min((a.y + a.h) - yChunks[1], (b.y + b.h) - yChunks[1])
-  yChunks[2] = (a.y + a.h) - (b.y + b.h)
-
-  zChunks[0] = b.z - a.z
-  zChunks[1] = max(a.z, b.z)
-  zChunks[1] = min((a.z + a.h) - zChunks[1], (b.z + b.h) - zChunks[1])
-  zChunks[2] = (a.z + a.h) - (b.z + b.h)
-}
-
-// func intersect(a, b *Cuboid) bool {
-//   return ((b.x >= a.x && (a.x + a.w) >= b.x) || ((b.x + b.w) >= a.x && (a.x + a.w) >= (b.x + b.w))) &&
-//   ((b.y >= a.y && (a.y + a.h) >= b.y) || ((b.y + b.h) >= a.y && (a.y + a.h) >= (b.y + b.h))) &&
-//   ((b.z >= a.z && (a.z + a.d) >= b.z) || ((b.z + b.d) >= a.z && (a.z + a.d) >= (b.z + b.d)))
-// }
 
 func intersection(a, b *Cuboid) *Cuboid {
-  x1 := max(a.x, b.x)
-  y1 := max(a.y, b.y)
-  z1 := max(a.z, b.z)
-  x2 := min(a.x + a.w, b.x + b.w)
-  y2 := min(a.y + a.h, b.y + b.h)
-  z2 := min(a.z + a.d, b.z + b.d)
-  if x2 > x1 && y2 > y1 && z2 > z1 {
-    return &Cuboid{
-      x: x1,
-      y: y1,
-      z: z1,
-      w: x2 - x1,
-      h: y2 - y1,
-      d: z2 - z1,
-    }
-  } else {
-    return nil
-  }
+	x1 := max(a.x, b.x)
+	y1 := max(a.y, b.y)
+	z1 := max(a.z, b.z)
+	x2 := min(a.x+a.w, b.x+b.w)
+	y2 := min(a.y+a.h, b.y+b.h)
+	z2 := min(a.z+a.d, b.z+b.d)
+	if x2 > x1 && y2 > y1 && z2 > z1 {
+		return &Cuboid{
+			x: x1,
+			y: y1,
+			z: z1,
+			w: x2 - x1,
+			h: y2 - y1,
+			d: z2 - z1,
+		}
+	} else {
+		return nil
+	}
 }
+
 func subtract(a, b *Cuboid) []*Cuboid {
-  if intersect := intersection(a, b); intersect == nil {
-    dup := *a
-    return []*Cuboid{&dup}
-  }
-  res := []*Cuboid{}
-  topCuboidHeight := b.y - a.y
-  if topCuboidHeight > 0 {
-    top := Cuboid{
-      x: a.x,
-      y: a.y,
-      z: a.z,
-      w: a.w,
-      h: topCuboidHeight,
-      d: a.d,
-    }
-    res = append(res, &top)
-  }
+	if intersection(a, b) == nil {
+		dup := *a
+		return []*Cuboid{&dup}
+	}
+	res := []*Cuboid{}
+	topCuboidHeight := b.y - a.y
+	if topCuboidHeight > 0 {
+		top := Cuboid{
+			x: a.x,
+			y: a.y,
+			z: a.z,
+			w: a.w,
+			h: topCuboidHeight,
+			d: a.d,
+		}
+		res = append(res, &top)
+	}
 
-  bottomCuboidY := b.y + b.h
-  bottomCuboidHeight := a.h - (bottomCuboidY - a.y)
-  if bottomCuboidHeight > 0 && bottomCuboidY < a.y + a.h {
-    bottom := Cuboid{
-      x: a.x,
-      y: bottomCuboidY,
-      z: a.z,
-      w: a.w,
-      h: bottomCuboidHeight,
-      d: a.d,
-    }
-    res = append(res, &bottom)
-  }
+	bottomCuboidY := b.y + b.h
+	bottomCuboidHeight := a.h - (bottomCuboidY - a.y)
+	if bottomCuboidHeight > 0 && bottomCuboidY < a.y+a.h {
+		bottom := Cuboid{
+			x: a.x,
+			y: bottomCuboidY,
+			z: a.z,
+			w: a.w,
+			h: bottomCuboidHeight,
+			d: a.d,
+		}
+		res = append(res, &bottom)
+	}
 
-  topY := a.y
-  if topY < b.y {
-    topY = b.y
-  }
-  bottomY := b.y + b.h
-  if bottomY > a.y + a.h {
-    bottomY = a.y + a.h
-  }
+	topY := max(a.y, b.y)
+	bottomY := min(b.y+b.h, a.y+a.h)
 
-  leftRightCuboidHeight := bottomY - topY
-  leftCuboidWidth := b.x - a.x
-  if leftCuboidWidth > 0 && leftRightCuboidHeight > 0 {
-    left := Cuboid{
-      x: a.x,
-      y: topY,
-      z: a.z,
-      w: leftCuboidWidth,
-      h: leftRightCuboidHeight,
-      d: a.d,
-    }
-    res = append(res, &left)
-  }
+	leftRightCuboidHeight := bottomY - topY
+	leftCuboidWidth := b.x - a.x
+	if leftCuboidWidth > 0 && leftRightCuboidHeight > 0 {
+		left := Cuboid{
+			x: a.x,
+			y: topY,
+			z: a.z,
+			w: leftCuboidWidth,
+			h: leftRightCuboidHeight,
+			d: a.d,
+		}
+		res = append(res, &left)
+	}
 
-  rightCuboidX := b.x + b.w
-  rightCuboidWidth := a.w - (rightCuboidX - a.x)
-  if rightCuboidWidth > 0 && leftRightCuboidHeight > 0 {
-    right := Cuboid{
-      x: rightCuboidX,
-      y: topY,
-      z: a.z,
-      w: rightCuboidWidth,
-      h: leftRightCuboidHeight,
-      d: a.d,
-    }
-    res = append(res, &right)
-  }
+	rightCuboidX := b.x + b.w
+	rightCuboidWidth := a.w - (rightCuboidX - a.x)
+	if rightCuboidWidth > 0 && leftRightCuboidHeight > 0 {
+		right := Cuboid{
+			x: rightCuboidX,
+			y: topY,
+			z: a.z,
+			w: rightCuboidWidth,
+			h: leftRightCuboidHeight,
+			d: a.d,
+		}
+		res = append(res, &right)
+	}
 
-  frontBackCuboidX := a.x
-  if frontBackCuboidX < b.x {
-    frontBackCuboidX = b.x
-  }
+	frontBackCuboidX := max(a.x, b.x)
+	frontBackCuboidWidth := min((a.x+a.w)-frontBackCuboidX, (b.x+b.w)-frontBackCuboidX)
+	frontBackCuboidHeight := min((a.y+a.h)-topY, (b.y+b.h)-topY)
 
-  frontBackCuboidWidth := (a.x + a.w) - frontBackCuboidX
-  if frontBackCuboidWidth2 := (b.x + b.w) - frontBackCuboidX; frontBackCuboidWidth2 < frontBackCuboidWidth {
-    frontBackCuboidWidth = frontBackCuboidWidth2
-  }
+	frontCuboidZ := b.z + b.d
+	frontCuboidDepth := a.d - (frontCuboidZ - a.z)
+	if frontCuboidDepth > 0 {
+		front := Cuboid{
+			x: frontBackCuboidX,
+			y: topY,
+			z: frontCuboidZ,
+			w: frontBackCuboidWidth,
+			h: frontBackCuboidHeight,
+			d: frontCuboidDepth,
+		}
+		res = append(res, &front)
+	}
 
-  frontBackCuboidHeight := (a.y + a.h) - topY
-  if frontBackCuboidHeight2 := (b.y + b.h) - topY; frontBackCuboidHeight2 < frontBackCuboidHeight {
-    frontBackCuboidHeight = frontBackCuboidHeight2
-  }
-
-  frontCuboidZ := b.z + b.d
-  frontCuboidDepth := a.d - (frontCuboidZ - a.z)
-  if frontCuboidDepth > 0 {
-    front := Cuboid{
-      x: frontBackCuboidX,
-      y: topY,
-      z: frontCuboidZ,
-      w: frontBackCuboidWidth,
-      h: frontBackCuboidHeight,
-      d: frontCuboidDepth,
-    }
-    res = append(res, &front)
-  }
-
-  backCuboidDepth := b.z - a.z
-  if backCuboidDepth > 0 {
-    back := Cuboid{
-      x: frontBackCuboidX,
-      y: topY,
-      z: a.z,
-      w: frontBackCuboidWidth,
-      h: frontBackCuboidHeight,
-      d: backCuboidDepth,
-    }
-    res = append(res, &back)
-  }
-  return res
-}
-
-func subtractMulti(a *Cuboid, list []*Cuboid) {
-  remaining := []*Cuboid{a}
-  for _, b := range list {
-    if intersection(a, b) == nil {
-      continue
-    }
-    remaining = subtract(a, b)
-  }
-}
-
-func add(a, b *Cuboid) []*Cuboid {
-  intersect := intersection(a, b)
-  if intersect == nil {
-    dupA := *a
-    dupB := *b
-    return []*Cuboid{&dupA, &dupB}
-  }
-  res := []*Cuboid{intersect}
-  res = append(res, subtract(a, b)...)
-  res = append(res, subtract(b, a)...)
-  return res
+	backCuboidDepth := b.z - a.z
+	if backCuboidDepth > 0 {
+		back := Cuboid{
+			x: frontBackCuboidX,
+			y: topY,
+			z: a.z,
+			w: frontBackCuboidWidth,
+			h: frontBackCuboidHeight,
+			d: backCuboidDepth,
+		}
+		res = append(res, &back)
+	}
+	return res
 }
 
 func run() int {
-	data, err := os.ReadFile("input4.txt")
+	data, err := os.ReadFile("input.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -249,60 +184,62 @@ func run() int {
 		x := strings.Replace(coords[0], "x=", "", 1)
 		y := strings.Replace(coords[1], "y=", "", 1)
 		z := strings.Replace(coords[2], "z=", "", 1)
-        x1, x2 := parseRange(x)
+		x1, x2 := parseRange(x)
 		y1, y2 := parseRange(y)
 		z1, z2 := parseRange(z)
-        step.Cuboid = &Cuboid{}
-        step.x = x1
-        step.y = y1
-        step.z = z1
-        step.w = x2 - x1 + 1
-        step.h = y2 - y1 + 1
-        step.d = z2 - z1 + 1
+		step.Cuboid = &Cuboid{}
+		step.x = x1
+		step.y = y1
+		step.z = z1
+		step.w = x2 - x1 + 1
+		step.h = y2 - y1 + 1
+		step.d = z2 - z1 + 1
 		steps = append(steps, step)
 	}
 
-    ranges := []*Cuboid{}
-    for ss, step := range steps {
-      fmt.Println(ss)
-      if step.on {
-        additionalRanges := []*Cuboid{step.Cuboid}
-        for _, r := range ranges {
-          updatedAdditionalRanges := []*Cuboid{}
-          for _, a := range additionalRanges {
-            updatedAdditionalRanges = append(updatedAdditionalRanges, subtract(a, r)...)
-          }
-          additionalRanges = updatedAdditionalRanges
-        }
-        ranges = append(ranges, additionalRanges...)
-      } else {
-        // offList := []*Cuboid{step.Cuboid}
-        // newRanges := []*Cuboid{}
-        // for len(offList) > 0 {
-        //   off := offList[0]
-        //   offList = offList[1:]
-        //   for i, on := range ranges {
-        //     if intersection(on, off) == nil {
-        //       // newRanges = append(newRanges, on)
-        //       continue
-        //     }
-        //     offList = append(offList, subtract(off, on)...)
-        //     newRanges = append(newRanges, subtract(on, off)...)
-        //     newRanges = append(newRanges, ranges[i+1:]...)
-        //     break
-        //   }
-        // }
-        // ranges = newRanges
-      }
-    }
-      sum := 0
-      for _, a := range ranges {
-        // fmt.Println(a)
-        sum += a.w * a.h * a.d
-      }
-      fmt.Println("sum", sum)
-      // fmt.Println(len(ranges))
-    // cuboids := []Cuboid{}
+	ranges := []*Cuboid{}
+	for _, step := range steps {
+		if step.on {
+			additionalRanges := []*Cuboid{step.Cuboid}
+			for _, r := range ranges {
+				updatedAdditionalRanges := []*Cuboid{}
+				for _, a := range additionalRanges {
+					updatedAdditionalRanges = append(updatedAdditionalRanges, subtract(a, r)...)
+				}
+				additionalRanges = updatedAdditionalRanges
+			}
+			ranges = append(ranges, additionalRanges...)
+		} else {
+			turnOff := []*Cuboid{step.Cuboid}
+			for len(turnOff) > 0 {
+				off := turnOff[0]
+				turnOff = turnOff[1:]
+				newRanges := []*Cuboid{}
+				for i, on := range ranges {
+					if intersection(on, off) != nil {
+						turnOff = append(turnOff, subtract(off, on)...)
+						newRanges = append(newRanges, subtract(on, off)...)
+						newRanges = append(newRanges, ranges[i+1:]...)
+						break
+					}
+					newRanges = append(newRanges, on)
+				}
+				ranges = newRanges
+			}
+		}
+	}
+	allSum := 0
+	initSum := 0
+	for _, a := range ranges {
+		if a.x >= -50 && a.x+a.w <= 50 &&
+			a.y >= -50 && a.y+a.h <= 50 &&
+			a.z >= -50 && a.z+a.d <= 50 {
+			initSum += a.w * a.h * a.d
+		}
+		allSum += a.w * a.h * a.d
+	}
+	fmt.Println(initSum)
+	fmt.Println(allSum)
 	return 0
 }
 
