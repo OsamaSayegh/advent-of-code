@@ -36,8 +36,8 @@ if YEAR == now.year
   end
 end
 cookie = ENV.fetch('AOC_COOKIE')
-if cookie.size != 96
-  STDERR.puts "Cookie length must be 96"
+if cookie.size < 1
+  STDERR.puts "Cookie must not be blank"
   exit(1)
 end
 
