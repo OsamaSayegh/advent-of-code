@@ -74,4 +74,6 @@ end
 script_file = Dir.foreach(day_dir).find { |name| name =~ /answer-script/ }
 puts "Opening vim..."
 sleep 0.3
-system("cd #{day_dir} && vim#{script_file ? " #{script_file}" : ""}")
+Dir.chdir(day_dir) do
+  exec(*["vim", script_file].compact)
+end
